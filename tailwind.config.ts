@@ -1,22 +1,22 @@
 
-import { type Config } from "tailwindcss";
+import { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
-import plugin from 'tailwindcss/plugin';
 
 export default {
   darkMode: ["class"],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './*.{js,ts,jsx,tsx,mdx}',
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
         "2xl": "1400px",
       },
     },
@@ -59,10 +59,14 @@ export default {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
           border: "hsl(var(--sidebar-border))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          primary: {
+            DEFAULT: "hsl(var(--sidebar-primary))",
+            foreground: "hsl(var(--sidebar-primary-foreground))",
+          },
+          accent: {
+            DEFAULT: "hsl(var(--sidebar-accent))",
+            foreground: "hsl(var(--sidebar-accent-foreground))",
+          },
           ring: "hsl(var(--sidebar-ring))",
         },
       },
@@ -70,6 +74,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ["Inter var", ...fontFamily.sans],
       },
       keyframes: {
         "accordion-down": {
@@ -85,23 +92,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
-      },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-    plugin(function({ addUtilities }) {
-      const newUtilities = {
-        '.hover-scale': {
-          transition: 'transform 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'scale(1.02)'
-          }
-        }
-      }
-      addUtilities(newUtilities)
-    })
-  ],
-} satisfies Config
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;
