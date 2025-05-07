@@ -8,16 +8,19 @@ import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface SeedType {
   id: number;
   name: string;
-  type: "Одноразовое" | "Многоурожайное" | "Секретное" | "Редкое" | "Мифическое";
+  type: "Одноразовое" | "Многоурожайное" | "Секретное" | "Редкое" | "Мифическое" | "Супер";
   price: number;
   sellPrice: number;
   growthTime: number; // in seconds for demo purposes
   imageUrl: string;
   description?: string;
+  superSeed?: boolean;
 }
 
 interface ToolType {
@@ -29,6 +32,8 @@ interface ToolType {
   effect: string;
   imageUrl: string;
   description: string;
+  goldenChanceBoost?: number;
+  rainbowChanceBoost?: number;
 }
 
 interface PlantType {
@@ -40,6 +45,8 @@ interface PlantType {
   position: { x: number; y: number };
   size: number; // For sprinkler effect
   mutated: boolean; // For lightning rod effect
+  goldenMutation?: boolean;
+  rainbowMutation?: boolean;
 }
 
 const GrowAGardenGame = () => {
@@ -55,303 +62,205 @@ const GrowAGardenGame = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [toolsSearchTerm, setToolsSearchTerm] = useState("");
   const [seedsFilter, setSeedsFilter] = useState("all");
+  const [massPlantingMode, setMassPlantingMode] = useState(false);
+  const [weatherCondition, setWeatherCondition] = useState<"sunny" | "rainy" | "stormy" | "foggy">("sunny");
 
-  // Seeds database
+  // Seeds database with updated prices
   const seedsData: SeedType[] = [
     {
       id: 1,
-      name: "Морковь",
-      type: "Одноразовое",
-      price: 20,
-      sellPrice: 40,
-      growthTime: 15, // 15 seconds for demo
-      imageUrl: "https://images.unsplash.com/photo-1522184216316-3c1a2f3d8c65?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2Fycm90fHx8fHx8MTcxNTEyMDY0Mw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Простое одноразовое семя, доступное с начала игры",
-    },
-    {
-      id: 2,
       name: "Клубника",
       type: "Многоурожайное",
-      price: 20,
-      sellPrice: 30,
-      growthTime: 20, // 20 seconds for demo
+      price: 50,
+      sellPrice: 100,
+      growthTime: 20, 
       imageUrl: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3RyYXdiZXJyeXx8fHx8fDE3MTUxMjA2Nzg&ixlib=rb-4.0.3&q=80&w=500",
       description: "Многоурожайное семя, дает плоды несколько раз",
     },
     {
-      id: 3,
-      name: "Черника",
+      id: 2,
+      name: "Голубика",
       type: "Многоурожайное",
-      price: 20,
-      sellPrice: 28,
-      growthTime: 18, // 18 seconds for demo
+      price: 400,
+      sellPrice: 800,
+      growthTime: 18,
       imageUrl: "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Ymx1ZWJlcnJ5fHx8fHx8MTcxNTEyMDcwMQ&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Многоурожайное семя, доступное в начале игры",
+      description: "Многоурожайное семя с высокой стоимостью плодов",
+    },
+    {
+      id: 3,
+      name: "Тюльпан",
+      type: "Редкое",
+      price: 600,
+      sellPrice: 1200,
+      growthTime: 40,
+      imageUrl: "https://images.unsplash.com/photo-1615385639736-362b69696227?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8dHVsaXB8fHx8fHwxNzE1MTIwNzQ5&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Красивый цветок, который можно продать за хорошую цену",
     },
     {
       id: 4,
-      name: "Томат",
-      type: "Многоурожайное",
-      price: 30,
-      sellPrice: 45,
-      growthTime: 16, // 16 seconds for demo
-      imageUrl: "https://images.unsplash.com/photo-1561136594-7f68413baa99?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8dG9tYXRvfHx8fHx8MTcxNTEyMDcyOQ&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Многоурожайный овощ, популярный среди новичков",
+      name: "Красный леденец",
+      type: "Мифическое",
+      price: 45000,
+      sellPrice: 100000,
+      growthTime: 60,
+      imageUrl: "https://images.unsplash.com/photo-1575224526797-5730d09d781d?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2FuZHl8fHx8fHwxNzE1MzE2NDEw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Редкое лакомство, приносящее огромную прибыль при продаже",
     },
     {
       id: 5,
-      name: "Тыква",
-      type: "Одноразовое",
-      price: 100,
-      sellPrice: 250,
-      growthTime: 30, // 30 seconds for demo
-      imageUrl: "https://images.unsplash.com/photo-1506919258185-6078bba55d2a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cHVtcGtpbnx8fHx8fDE3MTUxMjA3NDk&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Премиум одноразовое семя, требует значительных инвестиций",
+      name: "Томат",
+      type: "Многоурожайное",
+      price: 800,
+      sellPrice: 1600,
+      growthTime: 16,
+      imageUrl: "https://images.unsplash.com/photo-1561136594-7f68413baa99?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8dG9tYXRvfHx8fHx8MTcxNTEyMDcyOQ&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Многоурожайный овощ, популярный среди новичков",
     },
     {
       id: 6,
       name: "Кукуруза",
       type: "Многоурожайное",
-      price: 40,
-      sellPrice: 65,
-      growthTime: 22, // 22 seconds for demo
+      price: 1300,
+      sellPrice: 2600,
+      growthTime: 22,
       imageUrl: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29ybnx8fHx8fDE3MTUxMjA3NDk&ixlib=rb-4.0.3&q=80&w=500",
       description: "Многоурожайный овощ с хорошей ценностью",
     },
     {
       id: 7,
-      name: "Арбуз",
-      type: "Одноразовое",
-      price: 150,
-      sellPrice: 350,
-      growthTime: 35, // 35 seconds for demo
-      imageUrl: "https://images.unsplash.com/photo-1563114773-84221bd62daa?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8d2F0ZXJtZWxvbnx8fHx8fDE3MTUxMjA3NDk&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Дорогой одноразовый фрукт с хорошей прибылью",
-    },
-    {
-      id: 8,
-      name: "Оранжевый тюльпан",
-      type: "Редкое",
-      price: 750,
-      sellPrice: 1500,
-      growthTime: 40, // 40 seconds for demo
-      imageUrl: "https://images.unsplash.com/photo-1615385639736-362b69696227?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8dHVsaXB8fHx8fHwxNzE1MTIwNzQ5&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Редкий цветок, который продается за высокую цену",
-    },
-    {
-      id: 9,
       name: "Нарцисс",
       type: "Редкое",
       price: 1000,
       sellPrice: 2000,
-      growthTime: 45, // 45 seconds for demo
+      growthTime: 45,
       imageUrl: "https://images.unsplash.com/photo-1599644677701-f0b94ddde9bc?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZGFmZm9kaWx8fHx8fHwxNzE1MTIwNzQ5&ixlib=rb-4.0.3&q=80&w=500",
       description: "Редкий цветок с высокой ценностью",
     },
-    // New seeds
+    {
+      id: 8,
+      name: "Арбуз",
+      type: "Одноразовое",
+      price: 2500,
+      sellPrice: 5000,
+      growthTime: 35,
+      imageUrl: "https://images.unsplash.com/photo-1563114773-84221bd62daa?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8d2F0ZXJtZWxvbnx8fHx8fDE3MTUxMjA3NDk&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Дорогой одноразовый фрукт с хорошей прибылью",
+    },
+    {
+      id: 9,
+      name: "Тыква",
+      type: "Одноразовое",
+      price: 3000,
+      sellPrice: 6000,
+      growthTime: 30,
+      imageUrl: "https://images.unsplash.com/photo-1506919258185-6078bba55d2a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cHVtcGtpbnx8fHx8fDE3MTUxMjA3NDk&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Премиум одноразовое семя, требует значительных инвестиций",
+    },
     {
       id: 10,
-      name: "Папайя",
+      name: "Яблоко",
       type: "Многоурожайное",
-      price: 5000,
-      sellPrice: 12500,
-      growthTime: 50,
-      imageUrl: "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGFwYXlhfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Экзотический фрукт с высокой рыночной стоимостью",
+      price: 3275,
+      sellPrice: 6550,
+      growthTime: 42,
+      imageUrl: "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8YXBwbGV8fHx8fHwxNzE1MzE2NDE0&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Популярный фрукт с отличной прибылью и множеством урожаев",
     },
     {
       id: 11,
-      name: "Дуриан",
-      type: "Одноразовое",
-      price: 6000,
-      sellPrice: 15000,
-      growthTime: 60,
-      imageUrl: "https://images.unsplash.com/photo-1575482283543-8afc40f2e25c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZHVyaWFufHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Ароматный экзотический фрукт с высокой стоимостью",
+      name: "Бамбук",
+      type: "Редкое",
+      price: 4000,
+      sellPrice: 8000,
+      growthTime: 50,
+      imageUrl: "https://images.unsplash.com/photo-1504648942408-13f6095dc455?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8YmFtYm9vfHx8fHx8MTcxNTMxNjQxNw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Быстрорастущее растение с множеством применений",
     },
     {
       id: 12,
-      name: "Кокосовый орех",
+      name: "Пасхальное яйцо",
+      type: "Мифическое",
+      price: 500000,
+      sellPrice: 1000000,
+      growthTime: 100,
+      imageUrl: "https://images.unsplash.com/photo-1585499583264-491769657921?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZWFzdGVyK2VnZ3x8fHx8fDE3MTUzMTY0MTc&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Очень редкое семя, дающее необычайно ценный урожай",
+    },
+    {
+      id: 13,
+      name: "Кокос",
       type: "Многоурожайное",
-      price: 600,
-      sellPrice: 1500,
+      price: 6000,
+      sellPrice: 12000,
       growthTime: 38,
       imageUrl: "https://images.unsplash.com/photo-1583541277540-2e681244f647?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29jb251dHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
       description: "Тропический плод, ценный ресурс для многих целей",
     },
     {
-      id: 13,
+      id: 14,
       name: "Кактус",
       type: "Редкое",
-      price: 1000,
-      sellPrice: 2500,
+      price: 15000,
+      sellPrice: 30000,
       growthTime: 70,
       imageUrl: "https://images.unsplash.com/photo-1559563362-c667ba5f5480?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2FjdHVzfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
       description: "Выносливое растение, может выжить в суровых условиях",
     },
     {
-      id: 14,
+      id: 15,
       name: "Драконий фрукт",
       type: "Редкое",
-      price: 1400,
-      sellPrice: 3500,
+      price: 50000,
+      sellPrice: 100000,
       growthTime: 45,
       imageUrl: "https://images.unsplash.com/photo-1550828484-44ba48705f3c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZHJhZ29uK2ZydWl0fHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
       description: "Яркий экзотический фрукт с высокой питательной ценностью",
     },
     {
-      id: 15,
+      id: 16,
       name: "Манго",
       type: "Многоурожайное",
-      price: 800,
-      sellPrice: 2000,
+      price: 100000,
+      sellPrice: 200000,
       growthTime: 40,
       imageUrl: "https://images.unsplash.com/photo-1553279768-865429fa0078?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bWFuZ298fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
       description: "Сладкий тропический фрукт, востребованный на рынке",
     },
     {
-      id: 16,
-      name: "Маракуйя",
-      type: "Многоурожайное",
-      price: 8000,
-      sellPrice: 20000,
-      growthTime: 55,
-      imageUrl: "https://images.unsplash.com/photo-1604494163352-cb0054fff9ad?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGFzc2lvbitmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Ароматный и экзотический фрукт с уникальным вкусом",
-    },
-    {
       id: 17,
-      name: "Банан",
-      type: "Многоурожайное",
-      price: 6000,
-      sellPrice: 15000,
-      growthTime: 50,
-      imageUrl: "https://images.unsplash.com/photo-1543218024-57a70143c369?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8YmFuYW5hfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Популярный фрукт, растущий гроздьями на высоких растениях",
-    },
-    {
-      id: 18,
       name: "Виноград",
-      type: "Многоурожайное",
-      price: 1500,
-      sellPrice: 3750,
+      type: "Мифическое",
+      price: 850000,
+      sellPrice: 1700000,
       growthTime: 45,
       imageUrl: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Z3JhcGVzfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
       description: "Растет гроздьями, идеально подходит для виноделия",
     },
     {
-      id: 19,
-      name: "Плод души",
-      type: "Мифическое",
-      price: 15000,
-      sellPrice: 50000,
-      growthTime: 90,
-      imageUrl: "https://images.unsplash.com/photo-1582140161538-5e731bdd28ea?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Z2xvd2luZytmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Мистический фрукт с магическими свойствами, очень редкий",
-    },
-    {
-      id: 20,
-      name: "Проклятый фрукт",
-      type: "Мифическое",
-      price: 20000,
-      sellPrice: 70000,
-      growthTime: 100,
-      imageUrl: "https://images.unsplash.com/photo-1611030821715-84a1c32ff133?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3RyYW5nZStmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Легендарный фрукт, который дает силы, но имеет свою цену",
-    },
-    {
-      id: 21,
-      name: "Гриб",
-      type: "Многоурожайное",
-      price: 1700,
-      sellPrice: 4250,
-      growthTime: 30,
-      imageUrl: "https://images.unsplash.com/photo-1592492152545-9695d3f473f4?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bXVzaHJvb218fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Быстрорастущий гриб, хорошо развивается в тени",
-    },
-    {
-      id: 22,
-      name: "Перец",
-      type: "Многоурожайное",
-      price: 2000,
-      sellPrice: 5000,
-      growthTime: 35,
-      imageUrl: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVwcGVyfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Острый и ароматный овощ, доступен в разных вариациях",
-    },
-    {
-      id: 23,
+      id: 18,
       name: "Конфетный цветок",
-      type: "Редкое",
-      price: 1000,
-      sellPrice: 2500,
+      type: "Мифическое",
+      price: 100000,
+      sellPrice: 200000,
       growthTime: 40,
       imageUrl: "https://images.unsplash.com/photo-1464982239851-430cd391e8a9?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29sb3JmdWwrZmxvd2VyfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
       description: "Сладкий цветок, который привлекает насекомых-опылителей",
     },
     {
-      id: 24,
-      name: "Баклажан",
-      type: "Многоурожайное",
-      price: 8000,
-      sellPrice: 20000,
-      growthTime: 45,
-      imageUrl: "https://images.unsplash.com/photo-1635537766969-5c7b69ba950a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZWdncGxhbnR8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Питательный овощ с глубоким цветом и богатым вкусом",
-    },
-    {
-      id: 25,
-      name: "Лотос",
-      type: "Редкое",
-      price: 15000,
-      sellPrice: 40000,
-      growthTime: 70,
-      imageUrl: "https://images.unsplash.com/photo-1515513284606-89a82f5a7f36?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bG90dXN8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Священный водный цветок с глубоким духовным значением",
-    },
-    {
-      id: 26,
-      name: "Ананас",
-      type: "Одноразовое",
-      price: 3000,
-      sellPrice: 7500,
-      growthTime: 55,
-      imageUrl: "https://images.unsplash.com/photo-1521495112790-ac57722dfe2a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGluZWFwcGxlfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Сладкий тропический фрукт с характерным вкусом",
-    },
-    {
-      id: 27,
-      name: "Персик",
-      type: "Многоурожайное",
-      price: 3000,
-      sellPrice: 7500,
-      growthTime: 45,
-      imageUrl: "https://images.unsplash.com/photo-1629740067905-bd3f515aa736?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVhY2h8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Сочный и ароматный фрукт с нежной мякотью",
-    },
-    {
-      id: 28,
-      name: "Груша",
-      type: "Многоурожайное",
-      price: 2000,
-      sellPrice: 5000,
-      growthTime: 40,
-      imageUrl: "https://images.unsplash.com/photo-1596555545994-8f0e25986098?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVhcnx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Сладкий хрустящий фрукт с мягкой мякотью",
-    },
-    {
-      id: 29,
-      name: "Цветущая вишня",
-      type: "Редкое",
-      price: 5000,
-      sellPrice: 12500,
+      id: 19,
+      name: "Супер семя",
+      type: "Супер",
+      price: 1000000,
+      sellPrice: 2500000,
       growthTime: 50,
-      imageUrl: "https://images.unsplash.com/photo-1555865739-473893a1bebf?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2hlcnJ5K2Jsb3Nzb218fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Красивое цветущее дерево с прекрасными розовыми цветами",
-    }
+      imageUrl: "https://images.unsplash.com/photo-1582140161538-5e731bdd28ea?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Z2xvd2luZytmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Гарантированно дает растение с золотой мутацией",
+      superSeed: true
+    },
   ];
 
-  // Tools database
+  // Tools database with additional mutation chance boosts
   const toolsData: ToolType[] = [
     {
       id: 1,
@@ -389,29 +298,33 @@ const GrowAGardenGame = () => {
       type: "Разбрызгиватель",
       price: 25000,
       uses: 1,
-      effect: "Ускоряет рост на 50% и увеличивает размер растений",
+      effect: "Ускоряет рост на 50%, увеличивает размер и шанс на золотую мутацию",
       imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
       description: "Помогает посевам расти быстрее и выглядеть крупнее. Работает всего пять минут.",
+      goldenChanceBoost: 1
     },
     {
       id: 5,
-      name: "Усовершенствованный разбрызгиватель",
+      name: "Advanced Sprinkler",
       type: "Разбрызгиватель",
       price: 50000,
       uses: 1,
-      effect: "Ускоряет рост на 75% и добавляет шанс мутации",
+      effect: "Ускоряет рост на 75%, увеличивает шанс золотой и радужной мутации",
       imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Повышает скорость роста урожая и вероятность появления случайных мутаций. Работает пять минут.",
+      description: "Повышает скорость роста урожая и вероятность появления мутаций. Работает пять минут.",
+      goldenChanceBoost: 3,
+      rainbowChanceBoost: 1
     },
     {
       id: 6,
-      name: "Божественный разбрызгиватель",
+      name: "Goldy Sprinkler",
       type: "Разбрызгиватель",
       price: 120000,
       uses: 1,
-      effect: "Ускоряет рост вдвое и значительно увеличивает шанс мутации",
+      effect: "Ускоряет рост вдвое и значительно увеличивает шанс золотой мутации",
       imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Ускоряет рост, повышает вероятность мутации и придаёт посевам более крупный вид.",
+      description: "Специализированный разбрызгиватель для получения золотых мутаций.",
+      goldenChanceBoost: 5
     },
     {
       id: 7,
@@ -427,11 +340,25 @@ const GrowAGardenGame = () => {
       id: 8,
       name: "Master Sprinkler",
       type: "Разбрызгиватель",
-      price: 10000000,
+      price: 500000,
       uses: 1,
-      effect: "Ускоряет рост в 3 раза, значительно повышает шанс мутации и увеличивает размер",
+      effect: "Максимально улучшает рост и шансы на золотую и радужную мутацию",
       imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
-      description: "Значительно увеличивает рост растений, вероятность мутации и размер плодов. Работает в течение 10 минут.",
+      description: "Значительно увеличивает рост растений и вероятность всех типов мутации. Лучший инструмент садовода.",
+      goldenChanceBoost: 10,
+      rainbowChanceBoost: 5
+    },
+    {
+      id: 9,
+      name: "Godly Sprinkler", 
+      type: "Разбрызгиватель",
+      price: 1000000,
+      uses: 1,
+      effect: "Максимально увеличивает шансы на радужную мутацию",
+      imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Специализированный разбрызгиватель для получения редчайших радужных мутаций.",
+      goldenChanceBoost: 5,
+      rainbowChanceBoost: 10
     }
   ];
 
@@ -474,6 +401,22 @@ const GrowAGardenGame = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Randomly change weather conditions every 5 minutes
+  useEffect(() => {
+    const weatherInterval = setInterval(() => {
+      const weatherTypes: Array<"sunny" | "rainy" | "stormy" | "foggy"> = ["sunny", "rainy", "stormy", "foggy"];
+      const newWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
+      setWeatherCondition(newWeather);
+      
+      toast({
+        title: "Погода изменилась",
+        description: `Текущая погода: ${getWeatherName(newWeather)}`,
+      });
+    }, 300000); // 5 minutes
+    
+    return () => clearInterval(weatherInterval);
+  }, []);
+
   // Save game data to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('garden_money', money.toString());
@@ -481,6 +424,27 @@ const GrowAGardenGame = () => {
     localStorage.setItem('garden_tools', JSON.stringify(toolsInventory));
     localStorage.setItem('garden_plants', JSON.stringify(plants));
   }, [money, inventory, toolsInventory, plants]);
+
+  // Helper function to get weather name in Russian
+  const getWeatherName = (weather: "sunny" | "rainy" | "stormy" | "foggy") => {
+    switch (weather) {
+      case "sunny": return "Солнечно";
+      case "rainy": return "Дождливо";
+      case "stormy": return "Шторм";
+      case "foggy": return "Туман";
+    }
+  };
+
+  // Get mutation chance bonus from current weather
+  const getWeatherMutationBonus = () => {
+    switch (weatherCondition) {
+      case "sunny": return { golden: 1, rainbow: 0 };
+      case "rainy": return { golden: 2, rainbow: 0 };
+      case "stormy": return { golden: 3, rainbow: 1 };
+      case "foggy": return { golden: 0, rainbow: 2 };
+      default: return { golden: 0, rainbow: 0 };
+    }
+  };
 
   const buySeed = (seedId: number) => {
     const seed = seedsData.find(s => s.id === seedId);
@@ -538,7 +502,7 @@ const GrowAGardenGame = () => {
       setIsUsingTool(false);
       toast({
         title: "Режим посадки",
-        description: "Нажмите на сад, чтобы посадить выбранное семя",
+        description: `${massPlantingMode ? "Массовая посадка активирована" : "Нажмите на сад, чтобы посадить выбранное семя"}`,
       });
     }
   };
@@ -558,24 +522,71 @@ const GrowAGardenGame = () => {
     }
   };
 
+  const calculateMutationChance = (seedId: number, additionalBonus = 0) => {
+    const seed = seedsData.find(s => s.id === seedId);
+    
+    // Super seeds always get golden mutation
+    if (seed?.superSeed) {
+      return { golden: true, rainbow: false };
+    }
+    
+    const weatherBonus = getWeatherMutationBonus();
+    
+    // Base chances: 1% for golden, 0.1% for rainbow
+    const baseGoldenChance = 1;
+    const baseRainbowChance = 0.1;
+    
+    // Calculate total chances with all bonuses
+    const goldenChance = baseGoldenChance + additionalBonus + weatherBonus.golden;
+    const rainbowChance = baseRainbowChance + (additionalBonus / 2) + weatherBonus.rainbow;
+    
+    // Check for mutations
+    const goldenRoll = Math.random() * 100;
+    const rainbowRoll = Math.random() * 1000;
+    
+    // Rainbow is more rare but takes precedence over golden
+    const hasRainbow = rainbowRoll < rainbowChance;
+    const hasGolden = !hasRainbow && goldenRoll < goldenChance;
+    
+    return { golden: hasGolden, rainbow: hasRainbow };
+  };
+
+  const checkAdjacentPlants = (x: number, y: number) => {
+    // Check how many plants are nearby (within 100px)
+    const nearbyPlants = plants.filter(p => 
+      Math.sqrt(Math.pow(p.position.x - x, 2) + Math.pow(p.position.y - y, 2)) < 100
+    );
+    
+    // Each nearby plant increases mutation chance
+    return Math.min(5, nearbyPlants.length); // Cap at 5% bonus
+  };
+
   const plantSeed = (x: number, y: number) => {
     if (!selectedSeed || !isPlanting) return;
     
     if (inventory[selectedSeed] && inventory[selectedSeed] > 0) {
       // Check if position is available
       const existingPlant = plants.find(p => 
-        Math.abs(p.position.x - x) < 50 && 
-        Math.abs(p.position.y - y) < 50
+        Math.abs(p.position.x - x) < 40 && 
+        Math.abs(p.position.y - y) < 40
       );
       
       if (existingPlant) {
-        toast({
-          title: "Невозможно посадить здесь",
-          description: "Это место уже занято другим растением",
-          variant: "destructive"
-        });
+        if (!massPlantingMode) {
+          toast({
+            title: "Невозможно посадить здесь",
+            description: "Это место уже занято другим растением",
+            variant: "destructive"
+          });
+        }
         return;
       }
+      
+      // Calculate adjacency bonus for mutations
+      const adjacencyBonus = checkAdjacentPlants(x, y);
+      
+      // Determine if plant gets mutations
+      const mutations = calculateMutationChance(selectedSeed, adjacencyBonus);
       
       const newPlant: PlantType = {
         id: `plant_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -585,7 +596,9 @@ const GrowAGardenGame = () => {
         collected: false,
         position: { x, y },
         size: 1,
-        mutated: false
+        mutated: false,
+        goldenMutation: mutations.golden,
+        rainbowMutation: mutations.rainbow
       };
       
       setPlants(prev => [...prev, newPlant]);
@@ -594,13 +607,36 @@ const GrowAGardenGame = () => {
         [selectedSeed]: prev[selectedSeed] - 1
       }));
       
-      setIsPlanting(false);
-      
       const seed = seedsData.find(s => s.id === selectedSeed);
-      toast({
-        title: "Семя посажено!",
-        description: `Вы посадили ${seed?.name}. Оно вырастет через ${seed?.growthTime} секунд.`,
-      });
+      
+      if (!massPlantingMode) {
+        setIsPlanting(false);
+        
+        // Show different messages based on mutations
+        if (mutations.rainbow) {
+          toast({
+            title: "РАДУЖНАЯ МУТАЦИЯ!",
+            description: `Невероятно! Вы посадили ${seed?.name} с редчайшей радужной мутацией!`,
+          });
+        } else if (mutations.golden) {
+          toast({
+            title: "ЗОЛОТАЯ МУТАЦИЯ!",
+            description: `Поздравляем! Вы посадили ${seed?.name} с золотой мутацией!`,
+          });
+        } else {
+          toast({
+            title: "Семя посажено!",
+            description: `Вы посадили ${seed?.name}. Оно вырастет через ${seed?.growthTime} секунд.`,
+          });
+        }
+      } else if (inventory[selectedSeed] <= 0) {
+        // If we've used the last seed in mass planting mode, stop
+        setIsPlanting(false);
+        toast({
+          title: "Посадка завершена",
+          description: "У вас закончились семена этого типа",
+        });
+      }
     }
   };
 
@@ -667,42 +703,55 @@ const GrowAGardenGame = () => {
         
       case 4: // Basic sprinkler
       case 5: // Advanced sprinkler
-      case 6: // Divine sprinkler
+      case 6: // Goldy sprinkler
       case 8: // Master sprinkler
+      case 9: // Godly sprinkler
         // Apply growth boost and size increase based on sprinkler type
         let growthBoost = 0.5;
         let sizeIncrease = 1.2;
-        let mutationChance = 0.05;
         
         if (toolId === 5) { // Advanced
           growthBoost = 0.75;
           sizeIncrease = 1.5;
-          mutationChance = 0.15;
-        } else if (toolId === 6) { // Divine
+        } else if (toolId === 6 || toolId === 9) { // Goldy or Godly
           growthBoost = 1;
           sizeIncrease = 2;
-          mutationChance = 0.3;
         } else if (toolId === 8) { // Master
           growthBoost = 2;
           sizeIncrease = 3;
-          mutationChance = 0.5;
         }
         
         const newPlantedTime = plant.plantedAt - (seed.growthTime * 1000 * growthBoost);
-        const hasMutation = Math.random() < mutationChance;
+        
+        // Check for mutations with sprinkler bonuses
+        const goldenBonus = tool.goldenChanceBoost || 0;
+        const rainbowBonus = tool.rainbowChanceBoost || 0;
+        
+        const mutations = calculateMutationChance(
+          plant.seedId, 
+          goldenBonus + rainbowBonus
+        );
         
         const sprinkledPlants = [...plants];
         sprinkledPlants[plantIndex] = {
           ...plant,
           plantedAt: newPlantedTime,
           size: plant.size * sizeIncrease,
-          mutated: hasMutation || plant.mutated
+          goldenMutation: mutations.golden || plant.goldenMutation,
+          rainbowMutation: mutations.rainbow || plant.rainbowMutation
         };
         setPlants(sprinkledPlants);
         
+        let message = "Растение будет расти быстрее.";
+        if (mutations.rainbow) {
+          message = "Растение получило радужную мутацию!";
+        } else if (mutations.golden) {
+          message = "Растение получило золотую мутацию!";
+        }
+        
         toast({
           title: "Разбрызгиватель использован",
-          description: `Растение ${hasMutation ? "получило мутацию и " : ""}будет расти быстрее.`,
+          description: message,
         });
         break;
         
@@ -760,11 +809,20 @@ const GrowAGardenGame = () => {
     // Calculate reward
     let reward = seed.sellPrice;
     
-    // Increase reward based on size and mutations
+    // Increase reward based on size
     reward = Math.floor(reward * plant.size);
     
+    // Apply mutation bonuses
     if (plant.mutated) {
       reward = reward * 50; // Shocked mutation increases value 50x
+    }
+    
+    if (plant.goldenMutation) {
+      reward = reward * 10; // Golden mutation increases value 10x
+    }
+    
+    if (plant.rainbowMutation) {
+      reward = reward * 100; // Rainbow mutation increases value 100x
     }
     
     // Add small random bonus
@@ -784,17 +842,27 @@ const GrowAGardenGame = () => {
       };
       setPlants(updatedPlants);
       
+      let mutationText = "";
+      if (plant.rainbowMutation) mutationText = "радужное ";
+      else if (plant.goldenMutation) mutationText = "золотое ";
+      else if (plant.mutated) mutationText = "мутированное ";
+      
       toast({
         title: "Урожай собран!",
-        description: `Вы получили ${reward} шекелей. Растение даст новый урожай.`,
+        description: `Вы получили ${reward} шекелей за ${mutationText}растение. Оно даст новый урожай.`,
       });
     } else {
       // Remove one-time plants
       setPlants(prev => prev.filter(p => p.id !== plantId));
       
+      let mutationText = "";
+      if (plant.rainbowMutation) mutationText = "радужное ";
+      else if (plant.goldenMutation) mutationText = "золотое ";
+      else if (plant.mutated) mutationText = "мутированное ";
+      
       toast({
         title: "Урожай собран!",
-        description: `Вы получили ${reward} шекелей.`,
+        description: `Вы получили ${reward} шекелей за ${mutationText}растение.`,
       });
     }
   };
@@ -814,6 +882,7 @@ const GrowAGardenGame = () => {
       case "Секретное": return "bg-purple-100 text-purple-800";
       case "Редкое": return "bg-amber-100 text-amber-800";
       case "Мифическое": return "bg-red-100 text-red-800";
+      case "Супер": return "bg-orange-100 text-orange-800";
       case "Инструмент": return "bg-slate-100 text-slate-800";
       case "Разбрызгиватель": return "bg-cyan-100 text-cyan-800";
       case "Специальный": return "bg-indigo-100 text-indigo-800";
@@ -848,10 +917,27 @@ const GrowAGardenGame = () => {
     <div className="container mx-auto p-4">
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-center mb-2">Grow a Garden</h1>
-        <div className="flex justify-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
           <Badge className="bg-amber-100 text-amber-800 text-lg py-1 px-4">
             <Icon name="Coins" className="mr-2 h-5 w-5" />
             {money} шекелей
+          </Badge>
+          <Badge className={
+            weatherCondition === "sunny" ? "bg-yellow-100 text-yellow-800" :
+            weatherCondition === "rainy" ? "bg-blue-100 text-blue-800" :
+            weatherCondition === "stormy" ? "bg-purple-100 text-purple-800" :
+            "bg-gray-100 text-gray-800"
+          }>
+            <Icon 
+              name={
+                weatherCondition === "sunny" ? "Sun" :
+                weatherCondition === "rainy" ? "Cloud" :
+                weatherCondition === "stormy" ? "CloudLightning" :
+                "CloudFog"
+              } 
+              className="mr-2 h-5 w-5" 
+            />
+            {getWeatherName(weatherCondition)}
           </Badge>
         </div>
       </header>
@@ -865,6 +951,35 @@ const GrowAGardenGame = () => {
         </TabsList>
 
         <TabsContent value="garden" className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="mass-planting"
+                checked={massPlantingMode}
+                onCheckedChange={setMassPlantingMode}
+              />
+              <Label htmlFor="mass-planting">Режим массовой посадки</Label>
+            </div>
+            {isPlanting && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsPlanting(false)}
+              >
+                Отменить посадку
+              </Button>
+            )}
+            {isUsingTool && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsUsingTool(false)}
+              >
+                Отменить использование
+              </Button>
+            )}
+          </div>
+          
           <div 
             className="relative bg-green-50 min-h-[400px] h-[60vh] rounded-lg border border-green-200 overflow-hidden"
             onClick={(e) => {
@@ -878,39 +993,74 @@ const GrowAGardenGame = () => {
           >
             {isPlanting && (
               <div className="absolute top-0 left-0 right-0 bg-blue-100 p-2 text-center text-blue-800">
-                Выберите место для посадки {seedsData.find(s => s.id === selectedSeed)?.name}
-                <Button 
-                  variant="ghost" 
-                  className="ml-2 h-7 px-2 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPlanting(false);
-                  }}
-                >
-                  Отмена
-                </Button>
+                {massPlantingMode 
+                  ? `Режим массовой посадки: нажимайте несколько раз для посадки ${seedsData.find(s => s.id === selectedSeed)?.name}`
+                  : `Выберите место для посадки ${seedsData.find(s => s.id === selectedSeed)?.name}`
+                }
               </div>
             )}
 
             {isUsingTool && (
               <div className="absolute top-0 left-0 right-0 bg-amber-100 p-2 text-center text-amber-800">
                 Выберите растение для использования {toolsData.find(t => t.id === selectedTool)?.name}
-                <Button 
-                  variant="ghost" 
-                  className="ml-2 h-7 px-2 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsUsingTool(false);
-                  }}
-                >
-                  Отмена
-                </Button>
+              </div>
+            )}
+
+            {/* Weather effects visualizations */}
+            {weatherCondition === "rainy" && (
+              <div className="absolute inset-0 pointer-events-none">
+                {Array.from({ length: 50 }).map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="absolute w-0.5 h-10 bg-blue-300 opacity-50 animate-rain"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 5}s`,
+                      transform: 'rotate(10deg)'
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            
+            {weatherCondition === "foggy" && (
+              <div className="absolute inset-0 bg-gray-200 opacity-30 pointer-events-none" />
+            )}
+            
+            {weatherCondition === "stormy" && (
+              <div className="absolute inset-0 pointer-events-none">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="absolute w-1 h-full bg-purple-300 opacity-20 animate-lightning"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 10}s`,
+                    }}
+                  />
+                ))}
               </div>
             )}
 
             {plants.map((plant) => {
               const seed = seedsData.find(s => s.id === plant.seedId);
               if (!seed) return null;
+
+              // Calculate visual effects for mutations
+              let borderColor = "";
+              let glowEffect = "";
+              
+              if (plant.rainbowMutation) {
+                borderColor = "border-4 border-[conic-gradient(red,orange,yellow,green,blue,indigo,violet,red)]";
+                glowEffect = "animate-pulse shadow-[0_0_15px_rgba(255,0,255,0.7)]";
+              } else if (plant.goldenMutation) {
+                borderColor = "border-4 border-yellow-500";
+                glowEffect = "animate-pulse shadow-[0_0_10px_rgba(255,215,0,0.5)]";
+              } else if (plant.mutated) {
+                borderColor = "border-4 border-purple-500";
+                glowEffect = "animate-pulse shadow-[0_0_10px_rgba(128,0,128,0.5)]";
+              }
 
               return (
                 <div 
@@ -926,9 +1076,9 @@ const GrowAGardenGame = () => {
                     }
                   }}
                 >
-                  <div className="relative group">
+                  <div className={`relative group ${glowEffect}`}>
                     <div 
-                      className="flex items-center justify-center"
+                      className={`flex items-center justify-center rounded-full ${borderColor}`}
                       style={{ 
                         width: `${50 * plant.size}px`, 
                         height: `${50 * plant.size}px` 
@@ -938,17 +1088,21 @@ const GrowAGardenGame = () => {
                         value={plant.progress} 
                         size={50 * plant.size} 
                         className={
-                          plant.mutated 
-                            ? "text-purple-500" 
-                            : plant.progress === 100 
-                              ? "text-green-500" 
-                              : "text-amber-500"
+                          plant.rainbowMutation ? "text-violet-500" :
+                          plant.goldenMutation ? "text-yellow-500" :
+                          plant.mutated ? "text-purple-500" : 
+                          plant.progress === 100 ? "text-green-500" : 
+                          "text-amber-500"
                         }
                       />
                       <img 
                         src={seed.imageUrl} 
                         alt={seed.name} 
-                        className={`absolute object-cover rounded-full ${plant.mutated ? "filter hue-rotate-180" : ""}`}
+                        className={`absolute object-cover rounded-full ${
+                          plant.rainbowMutation ? "animate-rainbow-hue" :
+                          plant.goldenMutation ? "filter brightness-150 contrast-125 saturate-150" :
+                          plant.mutated ? "filter hue-rotate-180" : ""
+                        }`}
                         style={{ 
                           width: `${40 * plant.size}px`, 
                           height: `${40 * plant.size}px` 
@@ -1039,6 +1193,14 @@ const GrowAGardenGame = () => {
               >
                 Мифические
               </Button>
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "супер" ? "default" : "outline"}
+                className={seedsFilter === "супер" ? "" : "border-orange-200 text-orange-800"}
+                onClick={() => setSeedsFilter("супер")}
+              >
+                Супер
+              </Button>
             </div>
           </div>
           
@@ -1081,6 +1243,14 @@ const GrowAGardenGame = () => {
                         <Badge className={getTypeColor(seed.type)}>x{count}</Badge>
                       </div>
                     </CardHeader>
+                    <CardContent className="text-sm pb-2">
+                      <p>{seed.description}</p>
+                      {seed.superSeed && (
+                        <p className="text-orange-600 font-semibold mt-1">
+                          Гарантированная золотая мутация!
+                        </p>
+                      )}
+                    </CardContent>
                     <CardFooter>
                       <Button 
                         className="w-full"
@@ -1152,6 +1322,20 @@ const GrowAGardenGame = () => {
                     </CardHeader>
                     <CardContent className="text-sm pb-2">
                       <p>{tool.effect}</p>
+                      {(tool.goldenChanceBoost || tool.rainbowChanceBoost) && (
+                        <div className="flex flex-col mt-2 text-xs">
+                          {tool.goldenChanceBoost && (
+                            <span className="text-yellow-600">
+                              +{tool.goldenChanceBoost}% к шансу золотой мутации
+                            </span>
+                          )}
+                          {tool.rainbowChanceBoost && (
+                            <span className="text-violet-600">
+                              +{tool.rainbowChanceBoost/10}% к шансу радужной мутации
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                     <CardFooter>
                       <Button 
@@ -1236,6 +1420,14 @@ const GrowAGardenGame = () => {
                   >
                     Мифические
                   </Button>
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "супер" ? "default" : "outline"}
+                    className={seedsFilter === "супер" ? "" : "border-orange-200 text-orange-800"}
+                    onClick={() => setSeedsFilter("супер")}
+                  >
+                    Супер
+                  </Button>
                 </div>
               </div>
               
@@ -1257,6 +1449,11 @@ const GrowAGardenGame = () => {
                     </CardHeader>
                     <CardContent className="text-sm pb-2">
                       <p>{seed.description}</p>
+                      {seed.superSeed && (
+                        <p className="text-orange-600 font-semibold mt-1">
+                          Гарантированная золотая мутация!
+                        </p>
+                      )}
                       <div className="flex justify-between mt-2">
                         <div className="flex items-center">
                           <Icon name="Timer" className="mr-1 h-4 w-4 text-gray-500" />
@@ -1319,6 +1516,20 @@ const GrowAGardenGame = () => {
                           <span>{tool.effect}</span>
                         </div>
                       </div>
+                      {(tool.goldenChanceBoost || tool.rainbowChanceBoost) && (
+                        <div className="flex flex-col mt-2 text-xs">
+                          {tool.goldenChanceBoost && (
+                            <span className="text-yellow-600">
+                              +{tool.goldenChanceBoost}% к шансу золотой мутации
+                            </span>
+                          )}
+                          {tool.rainbowChanceBoost && (
+                            <span className="text-violet-600">
+                              +{tool.rainbowChanceBoost/10}% к шансу радужной мутации
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {tool.uses > 0 && (
                         <div className="mt-1 text-xs text-gray-500">
                           Можно использовать {tool.uses} раз(а)
@@ -1352,41 +1563,60 @@ const GrowAGardenGame = () => {
         <ul className="list-disc pl-5 space-y-1">
           <li>Купите семена в магазине, используя шекели</li>
           <li>Перейдите в инвентарь семян и выберите "Посадить"</li>
-          <li>Нажмите на свободное место в саду, чтобы посадить семя</li>
+          <li>Включите режим массовой посадки для быстрой посадки нескольких растений</li>
           <li>Дождитесь, пока растение созреет (достигнет 100%)</li>
           <li>Используйте инструменты, чтобы улучшить рост или изменить растения</li>
           <li>Соберите урожай, чтобы получить шекели</li>
           <li>Многоразовые растения дадут новый урожай после сбора</li>
-          <li>Мутированные растения стоят в 50 раз дороже!</li>
         </ul>
       </div>
       
       <div className="bg-gray-50 p-4 rounded-lg mt-4">
-        <h2 className="text-xl font-bold mb-2">Инструменты</h2>
+        <h2 className="text-xl font-bold mb-2">Мутации</h2>
         <div className="space-y-2">
           <div>
-            <h3 className="font-semibold">Лейка</h3>
-            <p className="text-sm">Сокращает время роста растений на 30%. Используется 10 раз.</p>
+            <h3 className="font-semibold">Шоковая мутация</h3>
+            <p className="text-sm">Увеличивает стоимость в 50 раз. Получается при использовании громоотвода.</p>
           </div>
           <Separator />
           <div>
-            <h3 className="font-semibold">Совок</h3>
-            <p className="text-sm">Позволяет перемещать многоурожайные растения. Нельзя использовать с одноразовыми.</p>
+            <h3 className="font-semibold">Золотая мутация</h3>
+            <p className="text-sm">Увеличивает стоимость в 10 раз. Шанс 1%, может быть увеличен разбрызгивателями.</p>
           </div>
           <Separator />
           <div>
-            <h3 className="font-semibold">Лопата</h3>
-            <p className="text-sm">Уничтожает растения. Это базовый инструмент, который всегда доступен.</p>
+            <h3 className="font-semibold">Радужная мутация</h3>
+            <p className="text-sm">Увеличивает стоимость в 100 раз! Шанс 0.1%, может быть увеличен Advanced и Godly разбрызгивателями.</p>
           </div>
           <Separator />
           <div>
-            <h3 className="font-semibold">Разбрызгиватели</h3>
-            <p className="text-sm">Ускоряют рост, увеличивают размер и дают шанс мутации. Чем лучше разбрызгиватель, тем сильнее эффект.</p>
+            <h3 className="font-semibold">Супер семя</h3>
+            <p className="text-sm">Гарантированно дает золотую мутацию при посадке.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-gray-50 p-4 rounded-lg mt-4">
+        <h2 className="text-xl font-bold mb-2">Погода</h2>
+        <div className="space-y-2">
+          <div>
+            <h3 className="font-semibold">Солнечно</h3>
+            <p className="text-sm">+1% к шансу золотой мутации.</p>
           </div>
           <Separator />
           <div>
-            <h3 className="font-semibold">Громоотвод</h3>
-            <p className="text-sm">Дает растению шоковую мутацию, которая увеличивает его стоимость в 50 раз!</p>
+            <h3 className="font-semibold">Дождливо</h3>
+            <p className="text-sm">+2% к шансу золотой мутации.</p>
+          </div>
+          <Separator />
+          <div>
+            <h3 className="font-semibold">Шторм</h3>
+            <p className="text-sm">+3% к шансу золотой и +0.1% к шансу радужной мутации.</p>
+          </div>
+          <Separator />
+          <div>
+            <h3 className="font-semibold">Туман</h3>
+            <p className="text-sm">+0.2% к шансу радужной мутации.</p>
           </div>
         </div>
       </div>

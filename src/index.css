@@ -99,3 +99,52 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .animate-rainbow-hue {
+    animation: rainbow-hue 3s linear infinite;
+  }
+
+  .animate-lightning {
+    animation: lightning 10s ease-in-out infinite;
+  }
+
+  .animate-rain {
+    animation: rain 5s linear infinite;
+  }
+
+  @keyframes rainbow-hue {
+    0%, 100% {
+      filter: hue-rotate(0deg);
+    }
+    50% {
+      filter: hue-rotate(360deg);
+    }
+  }
+
+  @keyframes lightning {
+    0%, 95%, 100% {
+      opacity: 0;
+    }
+    97.5% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes rain {
+    0% {
+      transform: translateY(-100%) rotate(10deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.5;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(1000%) rotate(10deg);
+      opacity: 0;
+    }
+  }
+}
