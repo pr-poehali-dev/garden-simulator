@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +54,7 @@ const GrowAGardenGame = () => {
   const [isUsingTool, setIsUsingTool] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [toolsSearchTerm, setToolsSearchTerm] = useState("");
+  const [seedsFilter, setSeedsFilter] = useState("all");
 
   // Seeds database
   const seedsData: SeedType[] = [
@@ -148,6 +148,207 @@ const GrowAGardenGame = () => {
       imageUrl: "https://images.unsplash.com/photo-1599644677701-f0b94ddde9bc?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZGFmZm9kaWx8fHx8fHwxNzE1MTIwNzQ5&ixlib=rb-4.0.3&q=80&w=500",
       description: "Редкий цветок с высокой ценностью",
     },
+    // New seeds
+    {
+      id: 10,
+      name: "Папайя",
+      type: "Многоурожайное",
+      price: 5000,
+      sellPrice: 12500,
+      growthTime: 50,
+      imageUrl: "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGFwYXlhfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Экзотический фрукт с высокой рыночной стоимостью",
+    },
+    {
+      id: 11,
+      name: "Дуриан",
+      type: "Одноразовое",
+      price: 6000,
+      sellPrice: 15000,
+      growthTime: 60,
+      imageUrl: "https://images.unsplash.com/photo-1575482283543-8afc40f2e25c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZHVyaWFufHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Ароматный экзотический фрукт с высокой стоимостью",
+    },
+    {
+      id: 12,
+      name: "Кокосовый орех",
+      type: "Многоурожайное",
+      price: 600,
+      sellPrice: 1500,
+      growthTime: 38,
+      imageUrl: "https://images.unsplash.com/photo-1583541277540-2e681244f647?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29jb251dHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Тропический плод, ценный ресурс для многих целей",
+    },
+    {
+      id: 13,
+      name: "Кактус",
+      type: "Редкое",
+      price: 1000,
+      sellPrice: 2500,
+      growthTime: 70,
+      imageUrl: "https://images.unsplash.com/photo-1559563362-c667ba5f5480?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2FjdHVzfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Выносливое растение, может выжить в суровых условиях",
+    },
+    {
+      id: 14,
+      name: "Драконий фрукт",
+      type: "Редкое",
+      price: 1400,
+      sellPrice: 3500,
+      growthTime: 45,
+      imageUrl: "https://images.unsplash.com/photo-1550828484-44ba48705f3c?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZHJhZ29uK2ZydWl0fHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Яркий экзотический фрукт с высокой питательной ценностью",
+    },
+    {
+      id: 15,
+      name: "Манго",
+      type: "Многоурожайное",
+      price: 800,
+      sellPrice: 2000,
+      growthTime: 40,
+      imageUrl: "https://images.unsplash.com/photo-1553279768-865429fa0078?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bWFuZ298fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Сладкий тропический фрукт, востребованный на рынке",
+    },
+    {
+      id: 16,
+      name: "Маракуйя",
+      type: "Многоурожайное",
+      price: 8000,
+      sellPrice: 20000,
+      growthTime: 55,
+      imageUrl: "https://images.unsplash.com/photo-1604494163352-cb0054fff9ad?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGFzc2lvbitmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Ароматный и экзотический фрукт с уникальным вкусом",
+    },
+    {
+      id: 17,
+      name: "Банан",
+      type: "Многоурожайное",
+      price: 6000,
+      sellPrice: 15000,
+      growthTime: 50,
+      imageUrl: "https://images.unsplash.com/photo-1543218024-57a70143c369?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8YmFuYW5hfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Популярный фрукт, растущий гроздьями на высоких растениях",
+    },
+    {
+      id: 18,
+      name: "Виноград",
+      type: "Многоурожайное",
+      price: 1500,
+      sellPrice: 3750,
+      growthTime: 45,
+      imageUrl: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Z3JhcGVzfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Растет гроздьями, идеально подходит для виноделия",
+    },
+    {
+      id: 19,
+      name: "Плод души",
+      type: "Мифическое",
+      price: 15000,
+      sellPrice: 50000,
+      growthTime: 90,
+      imageUrl: "https://images.unsplash.com/photo-1582140161538-5e731bdd28ea?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Z2xvd2luZytmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Мистический фрукт с магическими свойствами, очень редкий",
+    },
+    {
+      id: 20,
+      name: "Проклятый фрукт",
+      type: "Мифическое",
+      price: 20000,
+      sellPrice: 70000,
+      growthTime: 100,
+      imageUrl: "https://images.unsplash.com/photo-1611030821715-84a1c32ff133?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3RyYW5nZStmcnVpdHx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Легендарный фрукт, который дает силы, но имеет свою цену",
+    },
+    {
+      id: 21,
+      name: "Гриб",
+      type: "Многоурожайное",
+      price: 1700,
+      sellPrice: 4250,
+      growthTime: 30,
+      imageUrl: "https://images.unsplash.com/photo-1592492152545-9695d3f473f4?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bXVzaHJvb218fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Быстрорастущий гриб, хорошо развивается в тени",
+    },
+    {
+      id: 22,
+      name: "Перец",
+      type: "Многоурожайное",
+      price: 2000,
+      sellPrice: 5000,
+      growthTime: 35,
+      imageUrl: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVwcGVyfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Острый и ароматный овощ, доступен в разных вариациях",
+    },
+    {
+      id: 23,
+      name: "Конфетный цветок",
+      type: "Редкое",
+      price: 1000,
+      sellPrice: 2500,
+      growthTime: 40,
+      imageUrl: "https://images.unsplash.com/photo-1464982239851-430cd391e8a9?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29sb3JmdWwrZmxvd2VyfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Сладкий цветок, который привлекает насекомых-опылителей",
+    },
+    {
+      id: 24,
+      name: "Баклажан",
+      type: "Многоурожайное",
+      price: 8000,
+      sellPrice: 20000,
+      growthTime: 45,
+      imageUrl: "https://images.unsplash.com/photo-1635537766969-5c7b69ba950a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8ZWdncGxhbnR8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Питательный овощ с глубоким цветом и богатым вкусом",
+    },
+    {
+      id: 25,
+      name: "Лотос",
+      type: "Редкое",
+      price: 15000,
+      sellPrice: 40000,
+      growthTime: 70,
+      imageUrl: "https://images.unsplash.com/photo-1515513284606-89a82f5a7f36?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bG90dXN8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Священный водный цветок с глубоким духовным значением",
+    },
+    {
+      id: 26,
+      name: "Ананас",
+      type: "Одноразовое",
+      price: 3000,
+      sellPrice: 7500,
+      growthTime: 55,
+      imageUrl: "https://images.unsplash.com/photo-1521495112790-ac57722dfe2a?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGluZWFwcGxlfHx8fHx8MTcxNTI1MzQyMw&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Сладкий тропический фрукт с характерным вкусом",
+    },
+    {
+      id: 27,
+      name: "Персик",
+      type: "Многоурожайное",
+      price: 3000,
+      sellPrice: 7500,
+      growthTime: 45,
+      imageUrl: "https://images.unsplash.com/photo-1629740067905-bd3f515aa736?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVhY2h8fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Сочный и ароматный фрукт с нежной мякотью",
+    },
+    {
+      id: 28,
+      name: "Груша",
+      type: "Многоурожайное",
+      price: 2000,
+      sellPrice: 5000,
+      growthTime: 40,
+      imageUrl: "https://images.unsplash.com/photo-1596555545994-8f0e25986098?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8cGVhcnx8fHx8fDE3MTUyNTM0MjM&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Сладкий хрустящий фрукт с мягкой мякотью",
+    },
+    {
+      id: 29,
+      name: "Цветущая вишня",
+      type: "Редкое",
+      price: 5000,
+      sellPrice: 12500,
+      growthTime: 50,
+      imageUrl: "https://images.unsplash.com/photo-1555865739-473893a1bebf?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2hlcnJ5K2Jsb3Nzb218fHx8fHwxNzE1MjUzNDIz&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Красивое цветущее дерево с прекрасными розовыми цветами",
+    }
   ];
 
   // Tools database
@@ -222,6 +423,16 @@ const GrowAGardenGame = () => {
       imageUrl: "https://images.unsplash.com/photo-1533071581733-072d6a2b8fbc?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8bGlnaHRuaW5nfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
       description: "Обеспечивает культурам шокирующую мутацию, которая делает их в 50 раз более ценными. Можно использовать трижды.",
     },
+    {
+      id: 8,
+      name: "Master Sprinkler",
+      type: "Разбрызгиватель",
+      price: 10000000,
+      uses: 1,
+      effect: "Ускоряет рост в 3 раза, значительно повышает шанс мутации и увеличивает размер",
+      imageUrl: "https://images.unsplash.com/photo-1622556498246-755f44ca76f3?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=500&ixid=MnwxfDB8MXxyYW5kb218MHx8c3ByaW5rbGVyfHx8fHx8MTcxNTEyMDc0OQ&ixlib=rb-4.0.3&q=80&w=500",
+      description: "Значительно увеличивает рост растений, вероятность мутации и размер плодов. Работает в течение 10 минут.",
+    }
   ];
 
   // Load game data from localStorage
@@ -457,12 +668,27 @@ const GrowAGardenGame = () => {
       case 4: // Basic sprinkler
       case 5: // Advanced sprinkler
       case 6: // Divine sprinkler
-        // Apply growth boost and size increase
-        const growthBoost = toolId === 4 ? 0.5 : toolId === 5 ? 0.75 : 1;
+      case 8: // Master sprinkler
+        // Apply growth boost and size increase based on sprinkler type
+        let growthBoost = 0.5;
+        let sizeIncrease = 1.2;
+        let mutationChance = 0.05;
+        
+        if (toolId === 5) { // Advanced
+          growthBoost = 0.75;
+          sizeIncrease = 1.5;
+          mutationChance = 0.15;
+        } else if (toolId === 6) { // Divine
+          growthBoost = 1;
+          sizeIncrease = 2;
+          mutationChance = 0.3;
+        } else if (toolId === 8) { // Master
+          growthBoost = 2;
+          sizeIncrease = 3;
+          mutationChance = 0.5;
+        }
+        
         const newPlantedTime = plant.plantedAt - (seed.growthTime * 1000 * growthBoost);
-        const sizeIncrease = toolId === 4 ? 1.2 : toolId === 5 ? 1.5 : 2;
-        // Chance of mutation increases with sprinkler tier
-        const mutationChance = toolId === 4 ? 0.05 : toolId === 5 ? 0.15 : 0.3;
         const hasMutation = Math.random() < mutationChance;
         
         const sprinkledPlants = [...plants];
@@ -595,12 +821,21 @@ const GrowAGardenGame = () => {
     }
   };
 
-  // Filter seeds based on search
-  const filteredSeeds = seedsData.filter(seed => 
-    seed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    seed.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    seed.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter seeds based on search and type
+  const filteredSeeds = seedsData.filter(seed => {
+    // First filter by search term
+    const matchesSearch = 
+      seed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seed.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seed.type.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Then filter by seed type if not showing all
+    if (seedsFilter === "all") {
+      return matchesSearch;
+    } else {
+      return matchesSearch && seed.type.toLowerCase() === seedsFilter.toLowerCase();
+    }
+  });
 
   // Filter tools based on search
   const filteredTools = toolsData.filter(tool => 
@@ -755,7 +990,7 @@ const GrowAGardenGame = () => {
         </TabsContent>
 
         <TabsContent value="inventory" className="mt-4">
-          <div className="mb-4">
+          <div className="mb-4 space-y-2">
             <Input
               type="text"
               placeholder="Поиск семян..."
@@ -763,6 +998,48 @@ const GrowAGardenGame = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md mx-auto"
             />
+            
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "all" ? "default" : "outline"}
+                onClick={() => setSeedsFilter("all")}
+              >
+                Все
+              </Button>
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "одноразовое" ? "default" : "outline"}
+                className={seedsFilter === "одноразовое" ? "" : "border-blue-200 text-blue-800"}
+                onClick={() => setSeedsFilter("одноразовое")}
+              >
+                Одноразовые
+              </Button>
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "многоурожайное" ? "default" : "outline"}
+                className={seedsFilter === "многоурожайное" ? "" : "border-green-200 text-green-800"}
+                onClick={() => setSeedsFilter("многоурожайное")}
+              >
+                Многоурожайные
+              </Button>
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "редкое" ? "default" : "outline"}
+                className={seedsFilter === "редкое" ? "" : "border-amber-200 text-amber-800"}
+                onClick={() => setSeedsFilter("редкое")}
+              >
+                Редкие
+              </Button>
+              <Button 
+                size="sm" 
+                variant={seedsFilter === "мифическое" ? "default" : "outline"}
+                className={seedsFilter === "мифическое" ? "" : "border-red-200 text-red-800"}
+                onClick={() => setSeedsFilter("мифическое")}
+              >
+                Мифические
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -770,11 +1047,20 @@ const GrowAGardenGame = () => {
               .filter(([seedId, count]) => count > 0)
               .filter(([seedId]) => {
                 const seed = seedsData.find(s => s.id === Number(seedId));
-                return seed && (
+                if (!seed) return false;
+                
+                // Filter by search term
+                const matchesSearch = 
                   seed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   seed.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  seed.type.toLowerCase().includes(searchTerm.toLowerCase())
-                );
+                  seed.type.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                // Filter by seed type if not showing all
+                if (seedsFilter === "all") {
+                  return matchesSearch;
+                } else {
+                  return matchesSearch && seed.type.toLowerCase() === seedsFilter.toLowerCase();
+                }
               })
               .map(([seedId, count]) => {
                 const seed = seedsData.find(s => s.id === Number(seedId));
@@ -901,7 +1187,7 @@ const GrowAGardenGame = () => {
             </TabsList>
             
             <TabsContent value="seeds">
-              <div className="mb-4">
+              <div className="mb-4 space-y-2">
                 <Input
                   type="text"
                   placeholder="Поиск семян..."
@@ -909,6 +1195,48 @@ const GrowAGardenGame = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="max-w-md mx-auto"
                 />
+                
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "all" ? "default" : "outline"}
+                    onClick={() => setSeedsFilter("all")}
+                  >
+                    Все
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "одноразовое" ? "default" : "outline"}
+                    className={seedsFilter === "одноразовое" ? "" : "border-blue-200 text-blue-800"}
+                    onClick={() => setSeedsFilter("одноразовое")}
+                  >
+                    Одноразовые
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "многоурожайное" ? "default" : "outline"}
+                    className={seedsFilter === "многоурожайное" ? "" : "border-green-200 text-green-800"}
+                    onClick={() => setSeedsFilter("многоурожайное")}
+                  >
+                    Многоурожайные
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "редкое" ? "default" : "outline"}
+                    className={seedsFilter === "редкое" ? "" : "border-amber-200 text-amber-800"}
+                    onClick={() => setSeedsFilter("редкое")}
+                  >
+                    Редкие
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={seedsFilter === "мифическое" ? "default" : "outline"}
+                    className={seedsFilter === "мифическое" ? "" : "border-red-200 text-red-800"}
+                    onClick={() => setSeedsFilter("мифическое")}
+                  >
+                    Мифические
+                  </Button>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
